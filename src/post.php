@@ -14,7 +14,8 @@ if(isset($_SESSION['name'])){
 		if(make_links_clickable($text) != $text){
 			fwrite($fp, "<div class='msgln'>".date("H:i")."<b> | ".$_SESSION['name']."</b> : ".stripslashes(make_links_clickable($text))."<br></div>\n");
 			fclose($fp);
-		} else {
+		}
+		else {
 			fwrite($fp, "<div class='msgln'>".date("H:i")."<b> | ".$_SESSION['name']."</b> : ".stripslashes(htmlspecialchars(make_links_clickable($text)))."<br></div>\n");
 			fclose($fp);
 		}

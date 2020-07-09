@@ -10,7 +10,7 @@ if(isset($_SESSION['name'])){
 	if($code != ""){
 		fwrite($fp, "<div class='msgln'>".date("H:i")."<b> | ".$_SESSION['name']."</b> : <pre>".stripslashes(htmlspecialchars($code))."</pre><br></div>\n");
 		fclose($fp);
-		window.location.replace("chat.php");
+		header( "Location: chat.php" );
 	}
 }
 ?>
@@ -136,7 +136,7 @@ a:link {
 <div id="loginform">
    <form action="postcode.php" method="post" style="">
        <p style="font: 15px arial"><b>Collez le code à envoyer :</b></p><br>
-       <textarea type="text" name="code" id="code" maxlength="2000" spellcheck="false" style="border-radius: 10px; margin-bottom: 15px; background: #2c2f33; font: 13px monospace; color: white; height:80%; width:65%; overflow:auto"></textarea>
+       <textarea type="text" name="code" id="code" maxlength="2000" spellcheck="false" style="border-radius: 10px; margin-bottom: 15px; background: #2c2f33; font: 13px monospace; color: white; height:80%; width:65%; overflow:auto" autocomplete="off"></textarea>
        <button type="submit" name="sentcode" id="sentcode" value="Envoyer" style="margin-bottom: 5px">Envoyer</button>
    </form>
    <button name="retour" type="submit" id="retour" value="retour" style="margin-bottom: 15px; display:inline-block"/><a href="chat.php">Retour</a></button>

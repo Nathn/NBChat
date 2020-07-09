@@ -31,7 +31,7 @@ if (isset ( $_GET ['logout'] )) {
     fclose ( $fp );
    
     session_destroy ();
-    header ( "Location: index.php" ); // Redirect the user
+    header ( "Location: chat.php" ); // Redirect the user
 }
  
 ?>
@@ -152,10 +152,13 @@ a:link {
   color: #b9a3e3
 }
 
-pre {color: #97e6fe}
+pre {
+	color: #97e6fe;
+	background: #213442;
+}
 
-.onclick {
-    position: relative;
+.example {
+	position: relative;
     width: 170px;
     height: 80px;
     border: solid 4px #4b4b4b;
@@ -169,19 +172,33 @@ pre {color: #97e6fe}
     margin-right: auto;
 }
 
+.fixed {
+	position: absolute;
+	background: yellow;
+	top: 50%;
+	left: 50%;
+}
+
 
 input[type=checkbox] {
-    display: none;
+	display: none;
 }
 
-input[type=checkbox]:checked + .onclick {
-    display: block;
+input[type=checkbox]:checked + .example {
+	display: block;
 }
-</style>
-<title>Nat.best - Live Chat</title>
-<link rel="shortcut icon" type="image/png" href="/favicon.png"/>
+	</style>
+	<title>Nat.best - Live Chat</title>
+	<link rel="shortcut icon" type="image/png" href="/favicon.png"/>  
+	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet">
+	<link href="libs/css/emoji.css" rel="stylesheet">
 </head>
 <body>
+<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="libs/js/config.js"></script>
+<script src="libs/js/util.js"></script>
+<script src="libs/js/jquery.emojiarea.js"></script>
+<script src="libs/js/emoji-picker.js"></script>
     <?php
     if (! isset ( $_SESSION ['name'] )) {
         loginForm ();
@@ -207,15 +224,31 @@ input[type=checkbox]:checked + .onclick {
         }
         ?></div>
 		
-        <form name="message" action="">
-            <input name="usermsg" type="text" id="usermsg" maxlength="256" style="width: 75%; height: 25px; border-radius: 10px; margin-bottom: 15px; background: #2c2f33; font: 13px arial; color: white"/>
+        <form name="message" action="" class="lead emoji-picker-container">
+            <input name="usermsg" type="text" id="usermsg" maxlength="256" style="width: 75%; height: 25px; border-radius: 10px; margin-bottom: 15px; background: #2c2f33; font: 13px arial; color: white" autocomplete="off" data-emojiable="false"/>
 			<button name="submitmsg" type="submit" id="submitmsg" value="" style="margin-bottom: 15px"/>Envoyer</button>
         </form>
-		<button name="submitimg" type="submit" id="submitimg" value="" style="margin-bottom: 15px; display:inline-block; margin-right: 15px"/>Envoyer une image</button><button name="submitcode" type="submit" id="submitcode" value="" style="margin-bottom: 15px; display:inline-block"/>Envoyer du code</button>
+		
+		<button name="" type="submit" id="" value="" style="margin-bottom: 15px; display:inline-block; margin-right: 15px"/><label for='checkboximg'>
+			Envoyer une image
+		</label>
+		</button>
+		<input id='checkboximg' type='checkbox' />
+		<div class="example" style="position: absolute; background:#4b4b4b ;top: 0; bottom: 0; left: 0; right: 0; margin: auto; width: 500px; height: 170px; border: solid 4px black; border-radius: 10px">
+		<h3>Saisissez le lien de l'image à envoyer :</h3>
+		<form name="image" method="post" action="">
+			<input name="url" type="text" id="url" maxlength="256" style="width: 75%; height: 25px; border-radius: 10px; margin-bottom: 15px; background: #2c2f33; font: 13px arial; color: white" autocomplete="off"/>
+			<button name="submitimg" type="submit" id="submitimg" value="" style="margin-bottom: 15px; display:inline-block; margin-right: 15px"/>Envoyer</button><button style="display:inline-block"><label for='checkboximg'>Fermer</label></button>
+		<input id='checkboximg' type='checkbox' />
+		</form>
+		</div>
+		<button name="submitcode" type="submit" id="submitcode" value="" style="margin-bottom: 15px; display:inline-block"/>Envoyer du code</button>
 		<br>
-		<button name="" type="" id="" value="" style="margin-bottom: 15px"/><label for='checkbox'>Paramètres</label></button>
-		<input id='checkbox' type='checkbox' />
-		<div class="onclick">
+		<button name="" type="" id="" value="" style="margin-bottom: 15px"/><label for='checkboxprm'>
+			Paramètres
+		</label></button>
+		<input id='checkboxprm' type='checkbox' />
+		<div class="example">
 			<form method="post" action="chat.php">
 				<p>
 					<label for="refresh">Délai de rafraîchissement</label><br /><br />
@@ -228,9 +261,10 @@ input[type=checkbox]:checked + .onclick {
 					<input type="submit" name="refresh" id="refresh" value="Sauvegarder"/>
 				</p>
 			</form>
-		</div>
+		</div>	
 </div>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+
+
 <script type="text/javascript">
 // jQuery Document
 loadLog()
@@ -243,7 +277,7 @@ $(document).ready(function(){
     //If user wants to end session
     $("#exit").click(function(){
         var exit = confirm("Êtes-vous sûr de vouloir vous déconnecter ?");
-        if(exit==true){window.location = 'index.php?logout=true';}     
+        if(exit==true){window.location = 'chat.php?logout=true';}     
     });
 });
  
@@ -264,14 +298,18 @@ $("#refresh").click(function(){
     return false;
 });
 
+
 $("#submitimg").click(function(){
-        var url = prompt("Saisissez l'URL de l'image à envoyer");
-		if($url != ""){
-        $.post("postimg.php", {url: url});
-        loadLog();
+        var url = $("#url").val();
+		if(url != null){
+			console.log("url defined")
+			$.post("postimg.php", {url: url});
+			$("#url").attr("value", "");
+			loadLog();
 		}
     return false;
 });
+
 
 $("#submitcode").click(function(){
     window.location.replace("postcode.php");
@@ -279,7 +317,7 @@ $("#submitcode").click(function(){
 });
 
 
- 
+
 function loadLog(){    
     var oldscrollHeight = $("#chatbox").attr("scrollHeight") - 20; //Scroll height before the request
     $.ajax({
@@ -304,12 +342,23 @@ function loadLog(){
 var OldInterval = setInterval(loadLog, 10000);
 
 </script>
+<script>
+      $(function() {
+        // Initializes and creates emoji set from sprite sheet
+        window.emojiPicker = new EmojiPicker({
+          emojiable_selector: '[data-emojiable=true]',
+          assetsPath: 'libs/img/',
+          popupButtonClasses: 'fa fa-smile-o'
+        });
+        // Finds all elements with `emojiable_selector` and converts them to rich emoji input fields
+        // You may want to delay this step if you have dynamically created input fields that appear later in the loading process
+        // It can be called as many times as necessary; previously converted input fields will not be converted again
+        window.emojiPicker.discover();
+      });
+</script>
+
 <?php
     }
     ?>
-    <script type="text/javascript"
-        src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
-    <script type="text/javascript">
-</script>
 </body>
 </html>
